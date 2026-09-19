@@ -1,102 +1,105 @@
 // =========================
-// MOBILE MENU
+// MOBILE MENU TOGGLE
 // =========================
 
 const menuButton = document.getElementById("menuButton");
 const navMenu = document.getElementById("navMenu");
 
-menuButton.addEventListener("click", () => {
-    navMenu.classList.toggle("active");
-});
-
-
-// Close mobile menu after clicking a link
+if (menuButton) {
+    menuButton.addEventListener("click", () => {
+        navMenu.classList.toggle("active");
+    });
+}
 
 const navLinks = document.querySelectorAll("nav a");
-
 navLinks.forEach(link => {
     link.addEventListener("click", () => {
-        navMenu.classList.remove("active");
+        if (navMenu) navMenu.classList.remove("active");
     });
 });
 
 
 // =========================
-// CONTACT FORM (DIRECT EMAIL SUBMISSION)
+// CONTACT FORM SUBMISSION
 // =========================
 
 const contactForm = document.getElementById("contactForm");
 const formMessage = document.getElementById("formMessage");
 
-contactForm.addEventListener("submit", function(event) {
+if (contactForm) {
+    contactForm.addEventListener("submit", function(event) {
+        event.preventDefault();
 
-    event.preventDefault();
+        const name = document.getElementById("name").value.trim();
+        const email = document.getElementById("email").value.trim();
+        const message = document.getElementById("message").value.trim();
+        const submitBtn = contactForm.querySelector("button[type='submit']");
 
-    const name = document.getElementById("name").value.trim();
-    const email = document.getElementById("email").value.trim();
-    const message = document.getElementById("message").value.trim();
-
-    if (!name || !email || !message) {
-        formMessage.style.color = "red";
-        formMessage.textContent = "Please fill in all required fields.";
-        return;
-    }
-
-    formMessage.style.color = "#555";
-    formMessage.textContent = "Sending your enquiry...";
-
-    // FormData object banakar Web3Forms API par send kar rahe hain
-    const formData = new FormData(contactForm);
-
-    fetch("https://api.web3forms.com/submit", {
-        method: "POST",
-        body: formData
-    })
-    .then(async (response) => {
-        let json = await response.json();
-        if (response.status === 200) {
-            formMessage.style.color = "green";
-            formMessage.textContent = "Thank you! Your enquiry has been sent successfully to Melt Magic Solutions.";
-            contactForm.reset();
-        } else {
-            formMessage.style.color = "red";
-            formMessage.textContent = json.message || "Something went wrong. Please try again.";
+        if (!name || !email || !message) {
+            formMessage.style.color = "#d9534f";
+            formMessage.textContent = "Please fill in all required fields.";
+            return;
         }
-    })
-    .catch(error => {
-        formMessage.style.color = "red";
-        formMessage.textContent = "Failed to send message. Please check your internet connection.";
-    });
-});
 
+        formMessage.style.color = "#555";
+        formMessage.textContent = "Sending your enquiry...";
+        if (submitBtn) submitBtn.disabled = true;
 
-// =========================
-// CURRENT YEAR
-// =========================
+        const formData = new FormData(contactForm);
 
-document.getElementById("year").textContent =
-    new Date().getFullYear();
-
-
-// =========================
-// SIMPLE SCROLL ANIMATION
-// =========================
-
-const sections = document.querySelectorAll(".section");
-
-const observer = new IntersectionObserver(
-    entries => {
-        entries.forEach(entry => {
-            if (entry.isIntersecting) {
-                entry.target.classList.add("visible");
+        fetch("https://api.web3forms.com/submit", {
+            method: "POST",
+            body: formData
+        })
+        .then(async (response) => {
+            let json = await response.json();
+            if (response.status === 200) {
+                formMessage.style.color = "#28a745";
+                formMessage.textContent = "Thank you! Your enquiry has been sent successfully.";
+                contactForm.reset();
+            } else {
+                formMessage.style.color = "#d9534f";
+                formMessage.textContent = json.message || "Something went wrong. Please try again.";
             }
+        })
+        .catch(() => {
+            formMessage.style.color = "#d9534f";
+            formMessage.textContent = "Connection error. Please try again later.";
+        })
+        .finally(() => {
+            if (submitBtn) submitBtn.disabled = false;
         });
-    },
-    {
-        threshold: 0.1
-    }
-);
+    });
+}
 
-sections.forEach(section => {
+
+// =========================
+// DYNAMIC FOOTER YEAR
+// =========================
+
+const yearEl = document.getElementById("year");
+if (yearEl) {
+    yearEl.textContent = new Date().getFullYear();
+}
+
+
+// =========================
+// SCROLL ANIMATIONS (INTERSECTION OBSERVER)
+// =========================
+
+const observerOptions = {
+    threshold: 0.1,
+    rootMargin: "0px 0px -50px 0px"
+};
+
+const observer = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+        if (entry.isIntersecting) {
+            entry.target.classList.add("visible");
+        }
+    });
+}, observerOptions);
+
+document.querySelectorAll(".section").forEach(section => {
     observer.observe(section);
 });
